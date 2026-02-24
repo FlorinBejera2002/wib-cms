@@ -2,116 +2,57 @@ version: '3.8'
 
 services:
   # ============================================================
-  # Directus CMS — Admin panel + API
+  # Payload CMS — Admin panel + REST/GraphQL API (Next.js)
   # ============================================================
-  directus:
-    image: directus/directus:11
+  payload:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "${DIRECTUS_PORT:-8055}:8055"
+      - "${PAYLOAD_PORT:-3000}:3000"
     volumes:
-      - ./uploads:/directus/uploads
-      - ./extensions:/directus/extensions
-      - ./snapshots:/directus/snapshots
+      - ./uploads:/app/uploads
     environment:
-      SECRET: "${DIRECTUS_SECRET}"
-      ADMIN_EMAIL: "${ADMIN_EMAIL}"
+      NODE_ENV: production
+      PORT: "3000"
+
+      PAYLOAD_SECRET: "${PAYLOAD_SECRET}"
+      NEXT_PUBLIC_SERVER_URL: "${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}"
+
+      # MongoDB (external, shared with Symfony)
+      MONGODB_URI: "${MONGODB_URI:-mongodb://192.168.0.31:27017/wib_test}"
+
+      # Admin user (seeded on first run)
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@asigurari.ro}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
 
-      # Internal PostgreSQL database (Directus schema/config)
-      DB_CLIENT: "pg"
-      DB_HOST: "directus-db"
-      DB_PORT: "5432"
-      DB_DATABASE: "${DB_DATABASE:-directus}"
-      DB_USER: "${DB_USER:-directus}"
-      DB_PASSWORD: "${DB_PASSWORD}"
+      # AI features
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
 
-      # Public URL
-      PUBLIC_URL: "${PUBLIC_URL:-http://localhost:8055}"
-
-      # CORS — allow Symfony frontend
-      CORS_ENABLED: "true"
-      CORS_ORIGIN: "${CORS_ORIGIN:-*}"
-
-      # Rate limiting
-      RATE_LIMITER_ENABLED: "true"
-      RATE_LIMITER_POINTS: "50"
-      RATE_LIMITER_DURATION: "1"
-
-      # Cache
-      CACHE_ENABLED: "true"
-      CACHE_AUTO_PURGE: "true"
-      CACHE_TTL: "5m"
-
-      # Email (for user invites, password reset, notifications)
-      EMAIL_FROM: "${EMAIL_FROM:-noreply@asigurari.ro}"
-      EMAIL_TRANSPORT: "${EMAIL_TRANSPORT:-smtp}"
-      EMAIL_SMTP_HOST: "${SMTP_HOST:-}"
-      EMAIL_SMTP_PORT: "${SMTP_PORT:-587}"
-      EMAIL_SMTP_USER: "${SMTP_USER:-}"
-      EMAIL_SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
-      EMAIL_SMTP_SECURE: "${SMTP_SECURE:-false}"
-
-      # Auth providers
-      AUTH_PROVIDERS: "${AUTH_PROVIDERS:-local}"
-      AUTH_GOOGLE_DRIVER: "openid"
-      AUTH_GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
-      AUTH_GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
-      AUTH_GOOGLE_ISSUER_URL: "https://accounts.google.com/.well-known/openid-configuration"
-      AUTH_GOOGLE_IDENTIFIER_KEY: "email"
-      AUTH_GOOGLE_ALLOW_PUBLIC_REGISTRATION: "true"
-      AUTH_GOOGLE_DEFAULT_ROLE_ID: "${CONTRIBUTOR_ROLE_ID:-}"
-
-      # File storage
-      STORAGE_LOCATIONS: "local"
-      STORAGE_LOCAL_ROOT: "/directus/uploads"
-
-      # MongoDB sync (for mongo-sync hook)
-      MONGO_URI: "${MONGO_URI:-mongodb://192.168.0.31:27017}"
-      MONGO_DB: "${MONGO_DB:-wib_test}"
+      # n8n webhook
       N8N_WEBHOOK_URL: "${N8N_WEBHOOK_URL:-http://n8n:5678}"
 
-      # Preview link generation (must match Symfony kernel.secret)
+      # CORS
+      CORS_ORIGIN: "${CORS_ORIGIN:-https://www.asigurari.ro}"
+
+      # Email (SMTP for password reset, invitations)
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_SECURE: "${SMTP_SECURE:-false}"
+      EMAIL_FROM: "${EMAIL_FROM:-noreply@asigurari.ro}"
+
+      # Preview
       PREVIEW_SECRET: "${PREVIEW_SECRET:-ee4016c8434b8bfac95a92cb7cc44bb9}"
       SITE_URL: "${SITE_URL:-https://www.asigurari.ro}"
-
-      # Telemetry
-      TELEMETRY: "false"
-
-      # Max upload size
-      FILES_MAX_UPLOAD_SIZE: "10mb"
-
-      # Logging
-      LOG_LEVEL: "${LOG_LEVEL:-info}"
-    depends_on:
-      directus-db:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8055/server/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
-
-  # ============================================================
-  # PostgreSQL — Directus internal database
-  # ============================================================
-  directus-db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    ports:
-      - "${DB_PORT_EXTERNAL:-5433}:5432"
-    volumes:
-      - directus-db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: "${DB_DATABASE:-directus}"
-      POSTGRES_USER: "${DB_USER:-directus}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD}"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-directus} -d ${DB_DATABASE:-directus}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      start_period: 90s
 
   # ============================================================
   # n8n — Workflow automation (social media, newsletter, etc.)
@@ -142,7 +83,6 @@ services:
   # ============================================================
   # Preview — lightweight nginx serving the preview SPA
   # Editors open http://localhost:8056/?id=123&token=xxx
-  # Auto-refreshes every 5 seconds to show live changes
   # ============================================================
   preview:
     image: nginx:alpine
@@ -154,7 +94,5 @@ services:
       - ./preview/nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
-  directus-db-data:
-    driver: local
   n8n-data:
     driver: local

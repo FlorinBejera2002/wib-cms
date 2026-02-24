@@ -1,18 +1,40 @@
 {
-  "name": "wib-directus",
+  "name": "wib-payload",
   "version": "1.0.0",
-  "description": "Blog & Content Management System for asigurari.ro",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "start": "directus bootstrap && directus start",
-    "bootstrap": "directus bootstrap"
-  },
-  "keywords": [],
-  "author": "",
+  "description": "Blog & Content Management System for asigurari.ro — Payload CMS 3.x",
   "license": "ISC",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node server.js",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "payload": "payload",
+    "migrate": "npx tsx scripts/migrate-mongodb.ts"
+  },
   "dependencies": {
-    "directus": "^11.2.2",
-    "mongodb": "^4.17.2"
+    "@payloadcms/db-mongodb": "^3.0.0",
+    "@payloadcms/next": "^3.0.0",
+    "@payloadcms/plugin-seo": "^3.0.0",
+    "@payloadcms/richtext-lexical": "^3.0.0",
+    "@payloadcms/ui": "^3.0.0",
+    "graphql": "^16.8.1",
+    "next": "15.4.x",
+    "payload": "^3.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "mongodb": "^6.0.0",
+    "sharp": "^0.33.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }

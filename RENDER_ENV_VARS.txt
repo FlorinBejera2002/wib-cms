@@ -1,59 +1,49 @@
 # ============================================================
-# VARIABILE DE MEDIU PENTRU RENDER
+# VARIABILE DE MEDIU PENTRU RENDER — Payload CMS
 # Copiază exact aceste valori în Render Dashboard → Environment
 # ============================================================
 
-# === Security Keys (OBLIGATORIU - generează-le pe Render) ===
-KEY=your-random-key-here-min-32-chars
-SECRET=your-random-secret-here-min-32-chars
+# === Payload Secret (OBLIGATORIU — generează pe: openssl rand -base64 48) ===
+PAYLOAD_SECRET=your-random-64-char-secret-here
 
-# === Database (PostgreSQL din Render) ===
-DB_CLIENT=pg
-DB_HOST=<internal-hostname-from-render>
-DB_PORT=5432
-DB_DATABASE=directus
-DB_USER=<user-from-render>
-DB_PASSWORD=<password-from-render>
+# === Server URL (URL-ul serviciului tău Render) ===
+NEXT_PUBLIC_SERVER_URL=https://your-app-name.onrender.com
 
 # === Admin Account ===
 ADMIN_EMAIL=admin@asigurari.ro
 ADMIN_PASSWORD=ChangeThisPassword123!
 
-# === Public URL (va fi URL-ul tău de pe Render) ===
-PUBLIC_URL=https://your-app-name.onrender.com
+# === MongoDB (direct — fără PostgreSQL) ===
+MONGODB_URI=mongodb://192.168.0.31:27017/wib_test
+
+# === AI Features ===
+OPENAI_API_KEY=sk-...
 
 # === CORS ===
-CORS_ENABLED=true
-CORS_ORIGIN=true
+CORS_ORIGIN=https://www.asigurari.ro
 
-# === Rate Limiting ===
-RATE_LIMITER_ENABLED=true
-RATE_LIMITER_POINTS=50
-RATE_LIMITER_DURATION=1
+# === Email ===
+EMAIL_FROM=noreply@asigurari.ro
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_SECURE=false
 
-# === Cache ===
-CACHE_ENABLED=false
+# === n8n ===
+N8N_WEBHOOK_URL=http://n8n:5678
 
-# === Storage ===
-STORAGE_LOCATIONS=local
-
-# === Logging ===
-LOG_LEVEL=info
-
-# === MongoDB (pentru sync - optional) ===
-MONGO_URI=mongodb://192.168.0.31:27017
-MONGO_DB=wib_test
-
-# === Preview Secret (pentru Symfony) ===
+# === Preview ===
 PREVIEW_SECRET=ee4016c8434b8bfac95a92cb7cc44bb9
+SITE_URL=https://www.asigurari.ro
 
 # ============================================================
-# INSTRUCȚIUNI:
+# INSTRUCȚIUNI RENDER.COM:
 # ============================================================
-# 1. În Render Dashboard, mergi la serviciul Directus
-# 2. Click pe "Environment" tab
-# 3. Adaugă fiecare variabilă (Name = Value)
-# 4. Pentru KEY și SECRET, generează valori random pe https://generate-secret.vercel.app/32
-# 5. Pentru DB_* variabilele, ia valorile din serviciul PostgreSQL
-# 6. Schimbă PUBLIC_URL cu URL-ul real de pe Render
+# 1. Build Command:  npm install && npm run build
+# 2. Start Command:  node server.js
+# 3. Node Version:   22
+# 4. Port:           3000 (setează PORT=3000 sau lasă default)
+# 5. Elimină variabilele PostgreSQL (DB_CLIENT, DB_HOST, etc.)
+# 6. Generează PAYLOAD_SECRET: openssl rand -base64 48
 # ============================================================

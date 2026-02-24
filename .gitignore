@@ -1,5 +1,10 @@
 # Environment
 .env
+.env.render
+.env.local
+
+# Claude Code
+.claude/
 
 # Uploads
 uploads/*
@@ -26,3 +31,12 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Next.js / Payload CMS
+.next/
+next-env.d.ts
+src/payload-types.ts
+
+# Build output
+dist/
+build/
