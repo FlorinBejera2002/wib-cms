@@ -167,6 +167,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
       title: article.title,
       slug: isEdit ? prev.slug : slugify(article.title),
       excerpt: article.summary,
+      contentHtml: article.content_html,
       seo: {
         ...prev.seo,
         metaTitle: article.title,
