@@ -13,8 +13,8 @@ const pageConfig: Record<string, { title: string; action?: { label: string; href
   '/admin/comments': { title: 'Comentarii' },
   '/admin/media': { title: 'Media' },
   '/admin/users': { title: 'Utilizatori' },
-  '/admin/subscribers': { title: 'Abonați' },
-  '/admin/settings': { title: 'Setări' },
+  '/admin/subscribers': { title: 'Abona?i' },
+  '/admin/settings': { title: 'Set?ri' },
 }
 
 export default function Header() {
@@ -34,15 +34,21 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">{config.title}</h1>
-        {config.action && (
-          <Button asChild>
-            <Link href={config.action.href}>
-              <Plus className="h-4 w-4 mr-2" />
-              {config.action.label}
-            </Link>
-          </Button>
-        )}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{config.title}</h1>
+          <div id="header-status" />
+        </div>
+        <div className="flex items-center gap-2">
+          <div id="header-actions" />
+          {config.action && (
+            <Button asChild>
+              <Link href={config.action.href}>
+                <Plus className="h-4 w-4 mr-2" />
+                {config.action.label}
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   )

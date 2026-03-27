@@ -11,7 +11,7 @@ const CATEGORY_MAP: Record<
   NewsCategory,
   { label: string; color: string }
 > = {
-  rca: { label: 'RCA', color: 'blue' },
+  rca: { label: 'RCA', color: 'green' },
   casco: { label: 'CASCO', color: 'emerald' },
   legislatie: { label: 'Legislatie', color: 'purple' },
   piata: { label: 'Piata', color: 'teal' },
@@ -23,7 +23,7 @@ const CATEGORY_MAP: Record<
 }
 
 const COLOR_CSS: Record<string, string> = {
-  blue: 'bg-blue-100 text-blue-700',
+  green: 'bg-green-100 text-green-700',
   emerald: 'bg-emerald-100 text-emerald-700',
   purple: 'bg-purple-100 text-purple-700',
   teal: 'bg-teal-100 text-teal-700',
@@ -99,8 +99,8 @@ export default async function NewsPreviewPage({
   }
 
   // Derive helpers
-  const cat = CATEGORY_MAP[item.category] ?? { label: item.category, color: 'blue' }
-  const catCss = COLOR_CSS[cat.color] ?? COLOR_CSS.blue
+  const cat = CATEGORY_MAP[item.category] ?? { label: item.category, color: 'green' }
+  const catCss = COLOR_CSS[cat.color] ?? COLOR_CSS.green
   const authorName = item.authorName || 'Echipa asigurari.ro'
   const authorInitial = (authorName.charAt(0) || 'E').toUpperCase()
   const shareUrl = `https://www.asigurari.ro/news/${item.slug}`
@@ -125,26 +125,26 @@ export default async function NewsPreviewPage({
         <style
           dangerouslySetInnerHTML={{
             __html: `
-          /* ── Prose Article Typography (mirrors WIB production) ── */
+          /* ?? Prose Article Typography (mirrors WIB production) ?? */
           .prose-article { font-size: 1.0625rem; line-height: 1.8; color: #374151; }
           .prose-article p { margin-bottom: 1.25em; }
           .prose-article h2 { font-size: 1.5rem; font-weight: 800; color: #111827; margin-top: 2.5em; margin-bottom: 0.75em; line-height: 1.3; }
           .prose-article h3 { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-top: 2em; margin-bottom: 0.5em; line-height: 1.4; }
           .prose-article h4 { font-size: 1.1rem; font-weight: 600; color: #374151; margin-top: 1.5em; margin-bottom: 0.5em; }
-          .prose-article a { color: #1e40af; text-decoration: underline; text-underline-offset: 2px; }
-          .prose-article a:hover { color: #1e3a8a; }
+          .prose-article a { color: #15803d; text-decoration: underline; text-underline-offset: 2px; }
+          .prose-article a:hover { color: #166534; }
           .prose-article ul, .prose-article ol { margin-bottom: 1.25em; padding-left: 1.5em; }
           .prose-article ul { list-style-type: disc; }
           .prose-article ol { list-style-type: decimal; }
           .prose-article li { margin-bottom: 0.35em; }
           .prose-article li::marker { color: #9ca3af; }
           .prose-article blockquote {
-            border-left: 4px solid #3b82f6;
-            background: #eff6ff;
+            border-left: 4px solid #22c55e;
+            background: #f0fdf4;
             padding: 1em 1.25em;
             margin: 1.5em 0;
             border-radius: 0 0.5rem 0.5rem 0;
-            color: #1e40af;
+            color: #15803d;
             font-style: italic;
           }
           .prose-article blockquote p:last-child { margin-bottom: 0; }
@@ -212,16 +212,16 @@ export default async function NewsPreviewPage({
 
           {/* Two-column layout */}
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* ────────────────────────────────────────────── */}
+            {/* ?????????????????????????????????????????????? */}
             {/*  ARTICLE COLUMN                                */}
-            {/* ────────────────────────────────────────────── */}
+            {/* ?????????????????????????????????????????????? */}
             <article className="flex-1 min-w-0" id="article-content">
               <div className="bg-white shadow-sm rounded-2xl p-6 md:p-8">
                 {/* Breadcrumb */}
                 <nav className="mb-6" aria-label="Breadcrumb">
                   <ol className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                     <li>
-                      <span className="hover:text-blue-700 transition-colors cursor-default">
+                      <span className="hover:text-green-700 transition-colors cursor-default">
                         Acasa
                       </span>
                     </li>
@@ -229,7 +229,7 @@ export default async function NewsPreviewPage({
                       <i className="fas fa-chevron-right text-[10px] text-gray-300" />
                     </li>
                     <li>
-                      <span className="hover:text-blue-700 transition-colors cursor-default">
+                      <span className="hover:text-green-700 transition-colors cursor-default">
                         Stiri
                       </span>
                     </li>
@@ -239,7 +239,7 @@ export default async function NewsPreviewPage({
                           <i className="fas fa-chevron-right text-[10px] text-gray-300" />
                         </li>
                         <li>
-                          <span className="hover:text-blue-700 transition-colors cursor-default">
+                          <span className="hover:text-green-700 transition-colors cursor-default">
                             {cat.label}
                           </span>
                         </li>
@@ -320,7 +320,7 @@ export default async function NewsPreviewPage({
                     href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 hover:scale-110 transition-all duration-200 shadow-sm"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white hover:bg-green-700 hover:scale-110 transition-all duration-200 shadow-sm"
                   >
                     <i className="fab fa-facebook-f" />
                   </a>
@@ -336,7 +336,7 @@ export default async function NewsPreviewPage({
                     href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-700 text-white hover:bg-blue-800 hover:scale-110 transition-all duration-200 shadow-sm"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-green-700 text-white hover:bg-green-800 hover:scale-110 transition-all duration-200 shadow-sm"
                   >
                     <i className="fab fa-linkedin-in" />
                   </a>
@@ -352,7 +352,7 @@ export default async function NewsPreviewPage({
                         href={item.sourceUrl}
                         target="_blank"
                         rel="nofollow noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-green-600 hover:underline"
                       >
                         {item.sourceName || sourceDomain}
                       </a>
@@ -379,14 +379,14 @@ export default async function NewsPreviewPage({
               )}
             </article>
 
-            {/* ────────────────────────────────────────────── */}
+            {/* ?????????????????????????????????????????????? */}
             {/*  SIDEBAR                                       */}
-            {/* ────────────────────────────────────────────── */}
+            {/* ?????????????????????????????????????????????? */}
             <aside className="w-full lg:w-72 flex-shrink-0 space-y-6 lg:pt-0">
               {/* Share widget */}
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                 <h3 className="font-bold text-gray-900 mb-4 text-sm flex items-center gap-2">
-                  <i className="fas fa-share-alt text-blue-600" />
+                  <i className="fas fa-share-alt text-green-600" />
                   Distribuie stirea
                 </h3>
                 <div className="grid grid-cols-3 gap-3">
@@ -394,7 +394,7 @@ export default async function NewsPreviewPage({
                     href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-1 py-2 bg-blue-50 hover:bg-blue-100 rounded-xl text-blue-700 text-xs font-medium transition-colors no-underline"
+                    className="flex flex-col items-center gap-1 py-2 bg-green-50 hover:bg-green-100 rounded-xl text-green-700 text-xs font-medium transition-colors no-underline"
                   >
                     <i className="fab fa-facebook-f text-lg" />
                     Facebook
@@ -412,7 +412,7 @@ export default async function NewsPreviewPage({
                     href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-1 py-2 bg-blue-50 hover:bg-blue-100 rounded-xl text-blue-700 text-xs font-medium transition-colors no-underline"
+                    className="flex flex-col items-center gap-1 py-2 bg-green-50 hover:bg-green-100 rounded-xl text-green-700 text-xs font-medium transition-colors no-underline"
                   >
                     <i className="fab fa-linkedin-in text-lg" />
                     LinkedIn
@@ -429,14 +429,14 @@ export default async function NewsPreviewPage({
                 <p className="text-gray-300 text-sm mb-4">
                   Ai aflat ceva important?
                 </p>
-                <span className="block text-center py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors cursor-default">
+                <span className="block text-center py-2.5 bg-green-600 hover:bg-green-500 rounded-xl font-semibold transition-colors cursor-default">
                   Trimite stire &rarr;
                 </span>
               </div>
 
               {/* Back to news */}
               <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
-                <span className="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center gap-2 group cursor-default">
+                <span className="text-green-600 hover:text-green-800 font-medium flex items-center justify-center gap-2 group cursor-default">
                   <i className="fas fa-arrow-left text-sm group-hover:-translate-x-1 transition-transform" />
                   Inapoi la stiri
                 </span>
@@ -450,7 +450,7 @@ export default async function NewsPreviewPage({
         {/* ================================================================ */}
         <div
           id="reading-progress"
-          className="fixed top-0 left-0 h-1 bg-gradient-to-r from-gray-700 to-blue-600 z-50 w-0"
+          className="fixed top-0 left-0 h-1 bg-gradient-to-r from-gray-700 to-green-600 z-50 w-0"
           style={{ transition: 'width 0.15s linear' }}
         />
 

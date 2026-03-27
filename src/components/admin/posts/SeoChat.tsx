@@ -132,7 +132,7 @@ export default function SeoChat({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] border rounded-lg bg-white shadow-sm sticky top-20">
+    <div className="flex flex-col h-[min(560px,calc(100vh-6rem))] border rounded-lg bg-white shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
         <h3 className="font-semibold text-sm">AI Article Generator</h3>

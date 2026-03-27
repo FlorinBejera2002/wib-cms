@@ -9,7 +9,7 @@ import '@/lib/db/models/BlogTag'
 /*  System colour & label maps (mirrors the Twig template)            */
 /* ------------------------------------------------------------------ */
 const SYSTEM_COLORS: Record<string, string> = {
-  rca: 'bg-blue-100 text-blue-700',
+  rca: 'bg-green-100 text-green-700',
   casco: 'bg-emerald-100 text-emerald-700',
   travel: 'bg-amber-100 text-amber-700',
   home: 'bg-orange-100 text-orange-700',
@@ -114,7 +114,7 @@ export default async function BlogPreviewPage({
   const systemLabel =
     SYSTEM_LABELS[post.system] || (post.system ? post.system.toUpperCase() : '')
   const systemColor =
-    SYSTEM_COLORS[post.system] || 'bg-blue-100 text-blue-700'
+    SYSTEM_COLORS[post.system] || 'bg-green-100 text-green-700'
   const authorName = post.authorDisplayName || 'Echipa asigurari.ro'
   const authorInitial = authorName.charAt(0).toUpperCase()
   const dateFormatted = formatDate(post.publishedAt || post.createdAt)
@@ -155,14 +155,14 @@ export default async function BlogPreviewPage({
               .prose-article h2 { font-size: 1.5rem; font-weight: 800; color: #111827; margin-top: 2.5em; margin-bottom: 0.75em; line-height: 1.3; }
               .prose-article h3 { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-top: 2em; margin-bottom: 0.5em; line-height: 1.4; }
               .prose-article h4 { font-size: 1.1rem; font-weight: 600; color: #374151; margin-top: 1.5em; margin-bottom: 0.5em; }
-              .prose-article a { color: #1e40af; text-decoration: underline; text-underline-offset: 2px; }
-              .prose-article a:hover { color: #1e3a8a; }
+              .prose-article a { color: #15803d; text-decoration: underline; text-underline-offset: 2px; }
+              .prose-article a:hover { color: #166534; }
               .prose-article ul, .prose-article ol { margin-bottom: 1.25em; padding-left: 1.5em; }
               .prose-article ul { list-style-type: disc; }
               .prose-article ol { list-style-type: decimal; }
               .prose-article li { margin-bottom: 0.35em; }
               .prose-article li::marker { color: #9ca3af; }
-              .prose-article blockquote { border-left: 4px solid #3b82f6; background: #eff6ff; padding: 1em 1.25em; margin: 1.5em 0; border-radius: 0 0.5rem 0.5rem 0; color: #1e40af; font-style: italic; }
+              .prose-article blockquote { border-left: 4px solid #22c55e; background: #f0fdf4; padding: 1em 1.25em; margin: 1.5em 0; border-radius: 0 0.5rem 0.5rem 0; color: #15803d; font-style: italic; }
               .prose-article blockquote p:last-child { margin-bottom: 0; }
               .prose-article img { border-radius: 0.75rem; margin: 1.5em 0; max-width: 100%; height: auto; }
               .prose-article table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: 0.9375rem; }
@@ -215,7 +215,7 @@ export default async function BlogPreviewPage({
                 <li>
                   <a
                     href="https://www.asigurari.ro/"
-                    className="hover:text-blue-700 transition-colors"
+                    className="hover:text-green-700 transition-colors"
                   >
                     Acasa
                   </a>
@@ -226,7 +226,7 @@ export default async function BlogPreviewPage({
                 <li>
                   <a
                     href="https://www.asigurari.ro/blog"
-                    className="hover:text-blue-700 transition-colors"
+                    className="hover:text-green-700 transition-colors"
                   >
                     Blog
                   </a>
@@ -239,7 +239,7 @@ export default async function BlogPreviewPage({
                     <li>
                       <a
                         href={`https://www.asigurari.ro/blog?system=${post.system}`}
-                        className="hover:text-blue-700 transition-colors"
+                        className="hover:text-green-700 transition-colors"
                       >
                         {systemLabel}
                       </a>
@@ -273,7 +273,7 @@ export default async function BlogPreviewPage({
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 pb-6 border-b border-gray-200">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    <div className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
                       {authorInitial}
                     </div>
                     <div className="flex flex-col">
@@ -334,7 +334,7 @@ export default async function BlogPreviewPage({
                   href={`https://www.facebook.com/sharer/sharer.php?u=${articleUrl}`}
                   target="_blank"
                   rel="noopener"
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 hover:scale-110 transition-all duration-200 shadow-sm"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 text-white hover:bg-green-700 hover:scale-110 transition-all duration-200 shadow-sm"
                   title="Facebook"
                 >
                   <i className="fab fa-facebook-f text-sm text-white no-underline" />
@@ -352,7 +352,7 @@ export default async function BlogPreviewPage({
                   href={`https://www.linkedin.com/sharing/share-offsite/?url=${articleUrl}`}
                   target="_blank"
                   rel="noopener"
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-700 text-white hover:bg-blue-800 hover:scale-110 transition-all duration-200 shadow-sm"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-green-700 text-white hover:bg-green-800 hover:scale-110 transition-all duration-200 shadow-sm"
                   title="LinkedIn"
                 >
                   <i className="fab fa-linkedin-in text-sm text-white no-underline" />

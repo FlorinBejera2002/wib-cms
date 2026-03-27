@@ -53,7 +53,7 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
       TableCell,
       TableHeader,
       Placeholder.configure({
-        placeholder: 'Începeți să scrieți articolul...',
+        placeholder: 'Incepeti sa scrieti articolul...',
       }),
     ],
     content: content || '',
@@ -71,7 +71,7 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
 
   useEffect(() => {
     if (editor && externalContent) {
-      editor.commands.setContent(externalContent)
+      editor.commands.setContent(externalContent, true)
     }
   }, [editor, externalContent])
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,7 +20,8 @@ import TipTapEditor from './TipTapEditor'
 import FeaturedImagePicker from './FeaturedImagePicker'
 import MediaPickerDialog from '../media/MediaPickerDialog'
 import { SYSTEMS, POST_STATUSES } from '@/lib/constants'
-import { Save, Loader2, ImagePlus, RefreshCw, AlertCircle, Eye, Sparkles } from 'lucide-react'
+import { POST_FORM_LABELS as L } from '@/lib/post-form-labels'
+import { Save, Loader2, ImagePlus, RefreshCw, AlertCircle, Eye, Sparkles, FileText, Search, Share2, Settings2, Image as ImageIcon, Tag } from 'lucide-react'
 import SeoChat from './SeoChat'
 import {
   AlertDialog,
@@ -67,10 +69,10 @@ interface PostFormProps {
 }
 
 const statusLabels: Record<string, string> = {
-  draft: 'Ciorna',
-  pending_review: 'In asteptare',
-  published: 'Publicat',
-  archived: 'Arhivat',
+  draft: L.statusDraft,
+  pending_review: L.statusPending,
+  published: L.statusPublished,
+  archived: L.statusArchived,
 }
 
 const statusVariant: Record<string, 'success' | 'warning' | 'secondary' | 'destructive'> = {
@@ -214,42 +216,48 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
     }
   }
 
+  const [headerActionsEl, setHeaderActionsEl] = useState<HTMLElement | null>(null)
+  const [headerStatusEl, setHeaderStatusEl] = useState<HTMLElement | null>(null)
+
+  useEffect(() => {
+    const actionsEl = document.getElementById('header-actions')
+    const statusEl = document.getElementById('header-status')
+    if (actionsEl) setHeaderActionsEl(actionsEl)
+    if (statusEl) setHeaderStatusEl(statusEl)
+  }, [])
+
   return (
-    <div className="flex gap-6">
-      <div className={seoChatOpen ? 'flex-1 min-w-0' : 'w-full'}>
-        <div className="space-y-6">
-      {/* Sticky action bar */}
-      <div className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm sticky top-0 z-10">
-        <div className="flex items-center gap-3">
+    <div className="relative">
+      {/* Portal status badge under the title */}
+      {headerStatusEl && createPortal(
+        <div className="mt-1">
           <Badge variant={statusVariant[form.status] || 'secondary'}>
             {statusLabels[form.status] || form.status}
           </Badge>
-          {isEdit && <span className="text-sm text-muted-foreground">Editare articol</span>}
-          {!isEdit && <span className="text-sm text-muted-foreground">Articol nou</span>}
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant={seoChatOpen ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSeoChatOpen((prev) => !prev)}
-            className="hidden lg:inline-flex"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            AI Generator
-          </Button>
+        </div>,
+        headerStatusEl
+      )}
+
+      {/* Portal action buttons into the Header bar */}
+      {headerActionsEl && createPortal(
+        <div className="flex items-center gap-2">
           {isEdit && initialData?._id && (
-            <a href={`/preview/blog/${initialData._id}`} target="_blank" rel="noopener noreferrer"
-               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-              <Eye className="h-4 w-4" />
-              Preview
-            </a>
+            <Button variant="outline" size="sm" asChild>
+              <a href={`/preview/blog/${initialData._id}`} target="_blank" rel="noopener noreferrer">
+                <Eye className="h-4 w-4 mr-2" />
+                {L.previewButton}
+              </a>
+            </Button>
           )}
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} size="sm" className="bg-green-600 hover:bg-green-700 text-white shadow-sm">
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-            {isEdit ? 'Salveaza' : 'Creeaza'}
+            {isEdit ? L.saveEdit : L.saveCreate}
           </Button>
-        </div>
-      </div>
+        </div>,
+        headerActionsEl
+      )}
+
+      <div className="space-y-6">
 
       {error && (
         <div className="flex items-center gap-2 bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20">
@@ -261,102 +269,111 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Content */}
         <div className="lg:col-span-2 space-y-6">
-          <Card>
+          <Card className="border-green-100/60 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Continut</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-green-600" />
+                {L.sectionContent}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Titlu</Label>
+                <Label htmlFor="title" className="text-sm font-semibold">{L.titleLabel}</Label>
                 <Input
                   id="title"
                   value={form.title}
                   onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder="Titlul articolului"
-                  className="text-lg font-medium h-12"
+                  placeholder={L.titlePlaceholder}
+                  className="text-lg font-medium h-12 border-green-200 focus-visible:ring-green-500/30"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug (URL)</Label>
+                <Label htmlFor="slug" className="text-sm font-semibold">{L.slugLabel}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="slug"
                     value={form.slug}
                     onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
-                    placeholder="titlul-articolului"
-                    className="font-mono text-sm"
+                    placeholder={L.slugPlaceholder}
+                    className="font-mono text-sm bg-green-50/40"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={() => setForm((p) => ({ ...p, slug: slugify(p.title) }))}
-                    title="Regenereaza slug din titlu"
+                    title={L.slugRegenerate}
                   >
                     <RefreshCw className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Continut articol</Label>
+                <Label className="text-sm font-semibold">{L.contentLabel}</Label>
                 <TipTapEditor content={form.content} onChange={handleEditorChange} externalContent={externalContent} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="excerpt">Rezumat</Label>
+                <Label htmlFor="excerpt" className="text-sm font-semibold">{L.excerptLabel}</Label>
                 <Textarea
                   id="excerpt"
                   value={form.excerpt}
                   onChange={(e) => setForm((p) => ({ ...p, excerpt: e.target.value }))}
-                  placeholder="Un scurt rezumat al articolului..."
+                  placeholder={L.excerptPlaceholder}
                   rows={3}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-green-100/60 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">SEO</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Search className="h-5 w-5 text-green-600" />
+                {L.sectionSeo}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="metaTitle">Meta Title</Label>
+                <Label htmlFor="metaTitle">{L.metaTitleLabel}</Label>
                 <Input
                   id="metaTitle"
                   value={form.seo?.metaTitle}
                   onChange={(e) => setForm((p) => ({ ...p, seo: { ...p.seo, metaTitle: e.target.value } }))}
-                  placeholder="Titlu pentru motoarele de cautare"
+                  placeholder={L.metaTitlePlaceholder}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="metaDescription">Meta Description</Label>
+                <Label htmlFor="metaDescription">{L.metaDescriptionLabel}</Label>
                 <Textarea
                   id="metaDescription"
                   value={form.seo?.metaDescription}
                   onChange={(e) => setForm((p) => ({ ...p, seo: { ...p.seo, metaDescription: e.target.value } }))}
-                  placeholder="Descriere pentru motoarele de cautare"
+                  placeholder={L.metaDescriptionPlaceholder}
                   rows={2}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="metaKeywords">Meta Keywords</Label>
+                <Label htmlFor="metaKeywords">{L.metaKeywordsLabel}</Label>
                 <Input
                   id="metaKeywords"
                   value={form.seo?.metaKeywords}
                   onChange={(e) => setForm((p) => ({ ...p, seo: { ...p.seo, metaKeywords: e.target.value } }))}
-                  placeholder="cuvant1, cuvant2, cuvant3"
+                  placeholder={L.metaKeywordsPlaceholder}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-green-100/60 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Social / Open Graph</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-green-600" />
+                {L.sectionSocial}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="ogTitle">OG Title</Label>
+                <Label htmlFor="ogTitle">{L.ogTitleLabel}</Label>
                 <Input
                   id="ogTitle"
                   value={form.social?.ogTitle}
@@ -364,7 +381,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ogDescription">OG Description</Label>
+                <Label htmlFor="ogDescription">{L.ogDescriptionLabel}</Label>
                 <Textarea
                   id="ogDescription"
                   value={form.social?.ogDescription}
@@ -373,20 +390,20 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ogImage">OG Image</Label>
+                <Label htmlFor="ogImage">{L.ogImageLabel}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="ogImage"
                     value={form.social?.ogImage}
                     onChange={(e) => setForm((p) => ({ ...p, social: { ...p.social, ogImage: e.target.value } }))}
-                    placeholder="URL imagine sau alege din galerie"
+                    placeholder={L.ogImagePlaceholder}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={() => setOgPickerOpen(true)}
-                    title="Alege din galerie"
+                    title={L.ogImagePickerTitle}
                   >
                     <ImagePlus className="h-4 w-4" />
                   </Button>
@@ -405,13 +422,16 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
 
         {/* Right column - Sidebar */}
         <div className="space-y-6">
-          <Card>
+          <Card className="border-green-100/60 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Publicare</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-green-600" />
+                {L.sectionPublish}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>{L.statusLabel}</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) => setForm((p) => ({ ...p, status: v }))}
@@ -430,7 +450,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
               </div>
 
               <div className="space-y-2">
-                <Label>Sistem</Label>
+                <Label>{L.systemLabel}</Label>
                 <Select
                   value={form.system}
                   onValueChange={(v) => setForm((p) => ({ ...p, system: v }))}
@@ -449,7 +469,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="authorDisplayName">Numele autorului</Label>
+                <Label htmlFor="authorDisplayName">{L.authorLabel}</Label>
                 <Input
                   id="authorDisplayName"
                   value={form.authorDisplayName}
@@ -459,16 +479,16 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
 
               {categories.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Categorie</Label>
+                  <Label>{L.categoryLabel}</Label>
                   <Select
                     value={form.category || ''}
                     onValueChange={(v) => setForm((p) => ({ ...p, category: v === '_none' ? '' : v }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecteaza o categorie" />
+                      <SelectValue placeholder={L.categoryPlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="_none">Fara categorie</SelectItem>
+                      <SelectItem value="_none">{L.categoryNone}</SelectItem>
                       {categories.map((c) => (
                         <SelectItem key={c._id} value={c._id}>
                           {c.name}
@@ -481,7 +501,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
 
               {tags.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Tag-uri</Label>
+                  <Label>{L.tagsLabel}</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {tags.map((t) => {
                       const selected = form.tags?.includes(t._id)
@@ -513,9 +533,12 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-green-100/60 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Imagine principala</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-green-600" />
+                {L.sectionFeaturedImage}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <FeaturedImagePicker
@@ -538,29 +561,40 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
         }}
       />
         </div>
-      </div>
 
-      {seoChatOpen && (
-        <div className="w-[400px] shrink-0 hidden lg:block">
-          <SeoChat
-            currentTitle={form.title}
-            currentKeywords={form.seo?.metaKeywords || ''}
-            onApplyArticle={handleApplyArticle}
-            onClose={() => setSeoChatOpen(false)}
-          />
-        </div>
-      )}
+      {/* Floating AI chat - bottom right */}
+      <div className="fixed bottom-6 right-6 z-50 hidden lg:block">
+        {seoChatOpen && (
+          <div className="mb-3 w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <SeoChat
+              currentTitle={form.title}
+              currentKeywords={form.seo?.metaKeywords || ''}
+              onApplyArticle={handleApplyArticle}
+              onClose={() => setSeoChatOpen(false)}
+            />
+          </div>
+        )}
+        {!seoChatOpen && (
+          <Button
+            onClick={() => setSeoChatOpen(true)}
+            className="h-12 px-5 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 animate-in fade-in zoom-in-90 duration-200"
+          >
+            <Sparkles className="h-5 w-5 mr-2" />
+            {L.aiButton}
+          </Button>
+        )}
+      </div>
 
       <AlertDialog open={!!confirmArticle} onOpenChange={(open) => !open && setConfirmArticle(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Suprascrie continutul?</AlertDialogTitle>
+            <AlertDialogTitle>{L.confirmTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              Aceasta actiune va inlocui titlul, continutul, rezumatul si campurile SEO cu continut generat de AI.
+              {L.confirmDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Anuleaza</AlertDialogCancel>
+            <AlertDialogCancel>{L.confirmCancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (confirmArticle) {
@@ -568,7 +602,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
                 }
               }}
             >
-              Aplica
+              {L.confirmApply}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
