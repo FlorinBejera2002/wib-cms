@@ -11,6 +11,7 @@ Integrate an external SEO article generation endpoint into the CMS "New Post" fo
 - **Auth**: Static key via `X-SEO-Tool-Key` header
 - **Input**: `{ title?, description?, keywords? }` — at least `title` or `description` required
 - **Output**: `{ article: { title, summary, meta_description, content_markdown }, keywords, model, usage? }`
+- **Expected latency**: 10–30 seconds (LLM generation)
 
 ## Architecture
 
@@ -36,16 +37,18 @@ Server-to-server call means no CORS configuration needed on the external API.
 1. Receive `{ title, description, keywords }` from client
 2. Validate at least `title` or `description` is present
 3. Forward to external API with `X-SEO-Tool-Key` header
-4. Convert `content_markdown` → HTML using `marked`
-5. Return transformed response to client
+4. Convert `content_markdown` → HTML using `marked` (default config with `gfm: true`)
+5. Return transformed response to client (drop `model` and `usage` fields — not needed by client)
 6. Forward error status codes and messages from external API
 
 ### Environment Variables
 
-| Variable | Value |
-|----------|-------|
-| `SEO_TOOL_API_URL` | `https://www.asigurari.ro/ai-assistant/chat-api/v1/tools/seo/article` |
-| `SEO_TOOL_STATIC_KEY` | `py94HJrud(@?D!^N` |
+| Variable | Description |
+|----------|-------------|
+| `SEO_TOOL_API_URL` | External SEO API URL |
+| `SEO_TOOL_STATIC_KEY` | Static authentication key for the SEO API |
+
+Values go in `.env` (not committed). Placeholders go in `.env.example`.
 
 ### Response Format (success)
 
@@ -77,7 +80,7 @@ Server-to-server call means no CORS configuration needed on the external API.
 - Label: "Generate with AI"
 - Icon: sparkle or wand icon (from lucide-react)
 - Loading state: spinner + "Generating..." text
-- Disabled when: no title and no excerpt filled in
+- Disabled when both title and excerpt are empty (at least one must be filled)
 
 ### Generation Flow
 
@@ -87,45 +90,57 @@ Server-to-server call means no CORS configuration needed on the external API.
 4. On confirm → POST to `/api/admin/tools/seo-generate`:
    - `title` from title field
    - `description` from excerpt field
-   - `keywords` from SEO keywords field
+   - `keywords` from SEO keywords field, split by comma: `value.split(',').map(s => s.trim()).filter(Boolean)`
 5. On success, populate fields:
-   - `article.title` → Title input + auto-generate slug
-   - `article.content_html` → TipTap editor via `editor.commands.setContent(html)`
+   - `article.title` → Title input + auto-generate slug (only in create mode, matching existing `handleTitleChange` behavior)
+   - `article.content_html` → TipTap editor (see "TipTap Integration" below)
    - `article.summary` → Excerpt textarea
    - `article.meta_description` → SEO Meta Description input
-   - `keywords` → SEO Keywords field
-6. On error → toast notification with error message
+   - `keywords` → SEO Keywords field, joined as string: `keywords.join(', ')`
+6. On error → inline error banner using existing `setError()` + `AlertCircle` pattern (same as current form errors)
+
+### TipTap Integration
+
+The TipTapEditor component currently does not expose its `editor` instance to the parent. To allow PostForm to set content programmatically:
+
+- Add an `externalContent` prop to TipTapEditor (type: `string | null`)
+- Inside TipTapEditor, watch `externalContent` via `useEffect`: when it changes (and is not null), call `editor.commands.setContent(externalContent)`
+- This will trigger TipTap's `onUpdate` callback, which already syncs both `content` (JSON) and `contentHtml` to the parent form state
+- After calling `setContent`, reset `externalContent` to null to allow future updates
 
 ### Confirmation Dialog
 
-Uses existing shadcn `Dialog` component:
+Uses shadcn `AlertDialog` component (needs to be created from radix — `@radix-ui/react-alert-dialog` is already in package.json):
 - Title: "Overwrite content?"
 - Body: "This will replace the current title, content, excerpt, and SEO fields with AI-generated content."
 - Actions: "Cancel" / "Generate"
 
+AlertDialog is used instead of Dialog because it prevents closing by clicking outside, which is the correct UX for a destructive confirmation.
+
 ## Field Mapping
 
-| API Response Field | PostForm Field |
-|-------------------|----------------|
-| `article.title` | Title + slug generation |
-| `article.content_html` | TipTap editor content |
-| `article.summary` | Excerpt |
-| `article.meta_description` | SEO Meta Description |
-| `keywords` | SEO Keywords |
+| API Response Field | PostForm Field | Conversion |
+|-------------------|----------------|------------|
+| `article.title` | Title + slug generation (create mode only) | Direct string |
+| `article.content_html` | TipTap editor content | Via `externalContent` prop → `setContent(html)` → triggers `onUpdate` for JSON sync |
+| `article.summary` | Excerpt | Direct string |
+| `article.meta_description` | SEO Meta Description | Direct string |
+| `keywords` | SEO Keywords | Array joined with `', '` → string |
 
 ## Error Handling Summary
 
 | Scenario | Behavior |
 |----------|----------|
-| No title or description filled in | Button disabled or toast "Enter a title or description first" |
-| External API returns 4xx/5xx | Toast with error message from response |
-| Network failure | Toast "Failed to connect to SEO service" |
-| Timeout (>60s) | AbortController timeout, toast notification |
+| Both title and excerpt empty | Button disabled |
+| External API returns 4xx/5xx | Inline error banner via `setError()` |
+| Network failure | Inline error banner: "Failed to connect to SEO service" |
+| Timeout (>60s) | AbortController timeout, inline error banner |
 
 ## Dependencies
 
-- `marked` — markdown-to-HTML conversion (server-side only, new dependency)
-- All other dependencies (shadcn Dialog, lucide-react icons, TipTap) already exist
+- `marked` — markdown-to-HTML conversion (server-side only, new dependency). Default config with `gfm: true`. No sanitization needed since content comes from a trusted internal API.
+- `src/components/ui/alert-dialog.tsx` — new shadcn component (radix dependency already exists)
+- All other dependencies (lucide-react icons, TipTap) already exist
 
 ## Files Changed
 
@@ -133,6 +148,8 @@ Uses existing shadcn `Dialog` component:
 |------|--------|
 | `src/app/api/admin/tools/seo-generate/route.ts` | New — proxy route |
 | `src/components/admin/posts/PostForm.tsx` | Modified — add generate button, dialog, population logic |
+| `src/components/admin/posts/TipTapEditor.tsx` | Modified — add `externalContent` prop |
+| `src/components/ui/alert-dialog.tsx` | New — shadcn AlertDialog component |
 | `.env.example` | Modified — add SEO_TOOL_API_URL and SEO_TOOL_STATIC_KEY |
 | `.env` | Modified — add actual values |
 | `package.json` | Modified — add `marked` dependency |
@@ -144,3 +161,4 @@ Uses existing shadcn `Dialog` component:
 - No integration with NewsForm (can be added later if needed)
 - No history of generated articles
 - No rate limiting on the proxy (rely on external API's own limits)
+- No AI-generated tracking metadata on posts (can be added later)
