@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 60000)
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 60000)
 
+  try {
     const apiPayload: Record<string, unknown> = {}
     if (title) apiPayload.title = title
     if (description) apiPayload.description = description
@@ -56,8 +56,6 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(apiPayload),
       signal: controller.signal,
     })
-
-    clearTimeout(timeout)
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ error: 'Unknown upstream error' }))
@@ -90,5 +88,7 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to connect to SEO service' },
       { status: 500 }
     )
+  } finally {
+    clearTimeout(timeoutId)
   }
 }
