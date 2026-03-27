@@ -1,26 +1,29 @@
-# WIB Payload CMS
+# WIB CMS
 
-Blog & Content Management System for asigurari.ro — **Payload CMS 3.x + MongoDB**
+Custom Blog CMS for asigurari.ro — **Next.js 15 + Mongoose 6.x + TipTap + shadcn/ui**
 
 ## Architecture
 
 ```
-Payload CMS (Next.js 15, port 3000)
-    └── MongoDB (192.168.0.31:27017/wib_test) ← DIRECT, no sync layer
-              └── Symfony frontend reads directly
+WIB CMS (Next.js 15, port 3000)
+    ├── Admin Panel (/admin/*) — shadcn/ui + TipTap editor
+    ├── Admin API (/api/admin/*) — authenticated CRUD
+    ├── Public API (/api/v1/*) — CORS-enabled, read-only
+    └── MongoDB (192.168.0.31:27017/wib_test) ← shared with Symfony
+              └── Symfony frontend reads via Public API
 
-n8n (port 5678) ← triggered via afterChange hook
-nginx preview (port 8056) ← unchanged
+n8n webhooks ← triggered on post.published event
 ```
 
 ## Stack
 
 | Component | Version |
 |---|---|
-| Payload CMS | 3.x |
 | Next.js | 15.x |
-| @payloadcms/db-mongodb | 3.x |
-| @payloadcms/plugin-seo | 3.x |
+| Mongoose | 6.x (MongoDB 3.6 compatible) |
+| NextAuth.js | v5 (beta) |
+| TipTap | 2.x |
+| Tailwind CSS | 3.x + shadcn/ui |
 | Node.js | 22.x |
 | MongoDB | existing (192.168.0.31) |
 
@@ -29,78 +32,75 @@ nginx preview (port 8056) ← unchanged
 ```bash
 # 1. Copy environment file
 cp .env.example .env
-# Edit .env — set PAYLOAD_SECRET, ADMIN_PASSWORD, OPENAI_API_KEY
+# Edit .env — set NEXTAUTH_SECRET, ADMIN_PASSWORD
 
 # 2. Install dependencies
 npm install
 
-# 3. Run in development
+# 3. Seed admin user
+npm run seed
+
+# 4. Run in development
 npm run dev
 
-# 4. Open admin panel
+# 5. Open admin panel
 # URL: http://localhost:3000/admin
 # Email: admin@asigurari.ro
 # Password: (from .env)
-
-# 5. (Optional) Run data migration from old Directus format
-npm run migrate
 ```
 
-## Services
+## Public REST API (for Symfony frontend)
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Payload CMS | http://localhost:3000 | CMS Admin Panel + API |
-| n8n | http://localhost:5678 | Automation Workflows |
-| Preview | http://localhost:8056 | Article preview (nginx SPA) |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/posts` | GET | List published posts (paginated) |
+| `/api/v1/posts?slug=...` | GET | Get single post by slug |
+| `/api/v1/posts?system=rca` | GET | Filter by insurance system |
+| `/api/v1/posts?search=...` | GET | Full-text search |
+| `/api/v1/categories` | GET | All categories |
+| `/api/v1/tags` | GET | All tags |
+| `/api/v1/subscribers` | POST | Subscribe to newsletter |
+| `/api/v1/preview?slug=...&token=...` | GET | Preview draft posts |
 
-## API Endpoints
+## MongoDB Collections
 
-- `GET /api/blog-posts` — All posts (public: only published)
-- `GET /api/blog-posts?where[status][equals]=published` — Published posts
-- `GET /api/blog-categories` — All categories
-- `GET /api/blog-tags` — All tags
-- `GET /api/news` — All news (public: only published)
-- `GET /api/preview/:id?token=<secret>` — Preview endpoint (HTML)
-- `POST /api/users/login` — Admin login
-- `GET /api/graphql` — GraphQL endpoint
+| Collection | Description |
+|------------|-------------|
+| `blog_posts` | Blog articles (TipTap JSON + HTML, SEO, stats) |
+| `blog_categories` | Hierarchical categories |
+| `blog_tags` | Article tags |
+| `blog_comments` | User comments (moderated) |
+| `cms_users` | CMS admin users |
+| `cms_media` | Uploaded media files |
+| `newsletter_subscribers` | Email subscribers |
 
-## Collections
+## Roles & Permissions
 
-- `blog-posts` — Blog articles (34 fields + SEO + AI)
-- `blog-categories` — 11 insurance categories
-- `blog-tags` — Article tags (M2M)
-- `blog-comments` — User comments (with threading)
-- `newsletter-subscribers` — Email subscribers
-- `news` — Breaking news articles
-- `media` — File uploads
+| Permission | Admin | Editor | Author |
+|------------|-------|--------|--------|
+| Create posts | ✅ | ✅ | ✅ |
+| Edit own posts | ✅ | ✅ | ✅ |
+| Edit any posts | ✅ | ✅ | ❌ |
+| Publish posts | ✅ | ✅ | ❌ |
+| Delete posts | ✅ | ✅ | ❌ |
+| Manage categories/tags | ✅ | ✅ | ❌ |
+| Moderate comments | ✅ | ✅ | ❌ |
+| Manage users | ✅ | ❌ | ❌ |
 
-## Roles
+## Admin Pages
 
-- **Admin** — Full access to everything
-- **Editor** — Full CRUD on all content, can publish
-- **Contributor** — Create drafts only, read own posts
+- **Dashboard** — Stats overview, recent posts
+- **Articole** — Post list with filters, TipTap editor with SEO & OG fields
+- **Categorii** — CRUD categories
+- **Tag-uri** — CRUD tags
+- **Comentarii** — Moderate comments (approve/spam/delete)
+- **Media** — Upload and manage images
+- **Utilizatori** — User management (admin only)
+- **Abonați** — Newsletter subscribers + CSV export
 
-## Plugins
+## Deployment
 
-- **@payloadcms/plugin-seo** — Auto-generate meta tags, SERP preview
-- **payload-ai** (optional) — AI content generation, rewriting, images
-
-## Deployment (Render.com)
-
-- **Build Command:** `npm install && npm run build`
-- **Start Command:** `node server.js`
-- **Node Version:** 22
+- **Build:** `npm install && npm run build`
+- **Start:** `node server.js`
+- **Node:** 22.x
 - **Port:** 3000
-- See `RENDER_ENV_VARS.txt` for required environment variables
-
-## Data Migration
-
-```bash
-# Migrate from old Directus/mongo-sync format to Payload format
-npm run migrate
-
-# Field mappings: contentHtml→content, featuredImageUrl→featured_image_url,
-# authorDisplayName→author_display_name, introText→intro_text,
-# readingTime→reading_time, publishedAt→published_at
-```

@@ -32,10 +32,9 @@ Thumbs.db
 *.swp
 *.swo
 
-# Next.js / Payload CMS
+# Next.js
 .next/
 next-env.d.ts
-src/payload-types.ts
 
 # Build output
 dist/

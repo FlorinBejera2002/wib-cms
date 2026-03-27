@@ -167,8 +167,14 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
       excerpt: article.summary,
       seo: {
         ...prev.seo,
+        metaTitle: article.title,
         metaDescription: article.meta_description,
         metaKeywords: keywords.join(', '),
+      },
+      social: {
+        ...prev.social,
+        ogTitle: article.title,
+        ogDescription: article.meta_description,
       },
     }))
     setExternalContent(article.content_html)

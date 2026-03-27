@@ -1,8 +1,5 @@
-import { withPayload } from '@payloadcms/next/withPayload'
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Allow images from external sources
   images: {
     remotePatterns: [
       {
@@ -15,10 +12,19 @@ const nextConfig = {
       },
     ],
   },
-  // Payload CMS needs this
   experimental: {
-    reactCompiler: false,
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/uploads/:path*',
+      },
+    ]
   },
 }
 
-export default withPayload(nextConfig)
+export default nextConfig

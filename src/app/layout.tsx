@@ -1,12 +1,22 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  description: 'Blog & Content Management System for asigurari.ro',
-  title: 'WIB CMS',
+  title: 'WIB CMS — asigurari.ro',
+  description: 'Blog Content Management System for asigurari.ro',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Payload's RootLayout (in (payload)/layout.tsx) renders <html> and <body>.
-  // This root layout just passes children through to avoid nested html/body tags.
-  return children
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="ro">
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
 }
