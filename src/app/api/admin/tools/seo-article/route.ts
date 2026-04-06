@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 
-// gfm: true is the default in marked, no config needed
-
 const SEO_API_URL = process.env.SEO_TOOL_API_URL
 const SEO_API_KEY = process.env.SEO_TOOL_STATIC_KEY
 
@@ -25,35 +23,18 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { title, description, keywords } = body as {
-    title?: string
-    description?: string
-    keywords?: string[]
-  }
-
-  if (!title && !description) {
-    return NextResponse.json(
-      { error: 'Title or description is required' },
-      { status: 400 }
-    )
-  }
-
+  const delivery = (body.delivery as string) || 'json'
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 60000)
+  const timeoutId = setTimeout(() => controller.abort(), 90000)
 
   try {
-    const apiPayload: Record<string, unknown> = {}
-    if (title) apiPayload.title = title
-    if (description) apiPayload.description = description
-    if (keywords && keywords.length > 0) apiPayload.keywords = keywords
-
     const res = await fetch(SEO_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-SEO-Tool-Key': SEO_API_KEY,
       },
-      body: JSON.stringify(apiPayload),
+      body: JSON.stringify(body),
       signal: controller.signal,
     })
 
@@ -62,21 +43,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorData, { status: res.status })
     }
 
+    // SSE path: stream through directly
+    if (delivery === 'sse') {
+      const headers = new Headers({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      })
+      return new Response(res.body, { status: 200, headers })
+    }
+
+    // JSON path: augment article with content_html
     const data = await res.json()
 
-    const contentMarkdown: string = data.article?.content_markdown || ''
-    const contentHtmlRaw = marked.parse(contentMarkdown) as string
-    const contentHtml = DOMPurify.sanitize(contentHtmlRaw)
+    if (data.article?.content_markdown) {
+      const htmlRaw = marked.parse(data.article.content_markdown) as string
+      data.article.content_html = DOMPurify.sanitize(htmlRaw)
+    }
 
-    return NextResponse.json({
-      article: {
-        title: data.article?.title || '',
-        summary: data.article?.summary || '',
-        meta_description: data.article?.meta_description || '',
-        content_html: contentHtml,
-      },
-      keywords: data.keywords || [],
-    })
+    return NextResponse.json(data)
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       return NextResponse.json(

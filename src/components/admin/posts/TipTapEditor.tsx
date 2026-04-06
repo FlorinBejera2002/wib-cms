@@ -1,14 +1,10 @@
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import ImageExt from '@tiptap/extension-image'
 import LinkExt from '@tiptap/extension-link'
 import Underline from '@tiptap/extension-underline'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,10 +21,10 @@ import {
   Code,
   Image,
   Link,
-  Table as TableIcon,
   Minus,
   Undo,
   Redo,
+  Sparkles,
 } from 'lucide-react'
 import { useState, useCallback, useEffect } from 'react'
 import MediaPickerDialog from '../media/MediaPickerDialog'
@@ -37,9 +33,11 @@ interface TipTapEditorProps {
   content?: Record<string, unknown>
   onChange?: (json: Record<string, unknown>, html: string) => void
   externalContent?: string | null
+  onSelectionChange?: (selection: { text: string; from: number; to: number } | null) => void
+  onAskAI?: () => void
 }
 
-export default function TipTapEditor({ content, onChange, externalContent }: TipTapEditorProps) {
+export default function TipTapEditor({ content, onChange, externalContent, onSelectionChange, onAskAI }: TipTapEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -48,10 +46,6 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
       ImageExt.configure({ inline: false }),
       LinkExt.configure({ openOnClick: false }),
       Underline,
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableCell,
-      TableHeader,
       Placeholder.configure({
         placeholder: 'Incepeti sa scrieti articolul...',
       }),
@@ -65,6 +59,13 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
     onUpdate: ({ editor }) => {
       if (onChange) {
         onChange(editor.getJSON() as Record<string, unknown>, editor.getHTML())
+      }
+    },
+    onSelectionUpdate: ({ editor }) => {
+      if (onSelectionChange) {
+        const { from, to } = editor.state.selection
+        const text = editor.state.doc.textBetween(from, to)
+        onSelectionChange(text ? { text, from, to } : null)
       }
     },
   })
@@ -90,11 +91,6 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
     }
   }, [editor])
 
-  const addTable = useCallback(() => {
-    if (editor) {
-      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-    }
-  }, [editor])
 
   if (!editor) return null
 
@@ -215,9 +211,6 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
         <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={addLink}>
           <Link className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={addTable}>
-          <TableIcon className="h-4 w-4" />
-        </Button>
         <Button
           type="button"
           variant="ghost"
@@ -253,6 +246,28 @@ export default function TipTapEditor({ content, onChange, externalContent }: Tip
       </div>
 
       <EditorContent editor={editor} />
+
+      {/* Ask AI floating button on text selection */}
+      {onAskAI && (
+        <BubbleMenu
+          editor={editor}
+          tippyOptions={{ placement: 'top', duration: 150 }}
+          shouldShow={({ state }) => {
+            const { from, to } = state.selection
+            return to - from > 0
+          }}
+        >
+          <Button
+            type="button"
+            size="sm"
+            className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700 text-white shadow-md"
+            onClick={onAskAI}
+          >
+            <Sparkles className="h-3 w-3 mr-1" />
+            Ask AI
+          </Button>
+        </BubbleMenu>
+      )}
 
       <MediaPickerDialog
         open={imagePickerOpen}

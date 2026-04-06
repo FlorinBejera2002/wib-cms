@@ -13,9 +13,6 @@ export interface IBlogPost extends Document {
   content?: Record<string, unknown>
   contentHtml?: string
   excerpt?: string
-  introText?: string
-  conclusion?: string
-  contentBlocks?: Array<Record<string, unknown>>
   tocItems?: Array<{ id: string; text: string; level: number }>
   featuredImageUrl?: string
   featuredImageAlt?: string
@@ -58,9 +55,6 @@ const BlogPostSchema = new Schema<IBlogPost>(
     content: { type: Schema.Types.Mixed },
     contentHtml: { type: String },
     excerpt: { type: String },
-    introText: { type: String },
-    conclusion: { type: String },
-    contentBlocks: [{ type: Schema.Types.Mixed }],
     tocItems: [
       {
         id: String,

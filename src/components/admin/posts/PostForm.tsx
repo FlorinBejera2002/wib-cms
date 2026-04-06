@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ import { SYSTEMS, POST_STATUSES } from '@/lib/constants'
 import { POST_FORM_LABELS as L } from '@/lib/post-form-labels'
 import { Save, Loader2, ImagePlus, RefreshCw, AlertCircle, Eye, Sparkles, FileText, Search, Share2, Settings2, Image as ImageIcon, Tag } from 'lucide-react'
 import SeoChat from './SeoChat'
+import type { ArticleSnapshot, SelectionInfo } from './SeoChat'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import TurndownService from 'turndown'
+import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 
 interface PostFormData {
   _id?: string
@@ -91,6 +95,11 @@ function slugify(text: string): string {
     .replace(/(^-|-$)+/g, '')
 }
 
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  codeBlockStyle: 'fenced',
+})
+
 export default function PostForm({ initialData, categories = [], tags = [] }: PostFormProps) {
   const router = useRouter()
   const isEdit = !!initialData?._id
@@ -99,10 +108,8 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
   const [ogPickerOpen, setOgPickerOpen] = useState(false)
   const [seoChatOpen, setSeoChatOpen] = useState(false)
   const [externalContent, setExternalContent] = useState<string | null>(null)
-  const [confirmArticle, setConfirmArticle] = useState<{
-    article: { title: string; summary: string; meta_description: string; content_html: string }
-    keywords: string[]
-  } | null>(null)
+  const [editorSelection, setEditorSelection] = useState<{ text: string; from: number; to: number } | null>(null)
+  const [confirmArticle, setConfirmArticle] = useState<ArticleSnapshot | null>(null)
 
   const [form, setForm] = useState<PostFormData>({
     title: initialData?.title || '',
@@ -131,6 +138,44 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
     },
   })
 
+  // Build ArticleSnapshot from current form state
+  const articleSnapshot = useMemo<ArticleSnapshot | null>(() => {
+    if (!form.title && !form.contentHtml) return null
+    const contentMarkdown = form.contentHtml
+      ? turndownService.turndown(form.contentHtml)
+      : ''
+    const categoryObj = categories.find((c) => c._id === form.category)
+    return {
+      title: form.title,
+      summary: form.excerpt || '',
+      meta_description: form.seo?.metaDescription || '',
+      meta_keywords: form.seo?.metaKeywords
+        ? form.seo.metaKeywords.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+      content_markdown: contentMarkdown,
+      category: categoryObj?.name || null,
+      insurance_system: form.system ? form.system.toUpperCase() : null,
+    }
+  }, [form.title, form.contentHtml, form.excerpt, form.seo?.metaDescription, form.seo?.metaKeywords, form.system, form.category, categories])
+
+  // Build SelectionInfo from editor selection
+  const selectionInfo = useMemo<SelectionInfo | null>(() => {
+    if (!editorSelection || !editorSelection.text) return null
+    return {
+      field: 'content_markdown' as const,
+      start_utf16: editorSelection.from,
+      end_utf16: editorSelection.to,
+      text: editorSelection.text,
+    }
+  }, [editorSelection])
+
+  const categoryOptions = useMemo(() => categories.map((c) => c.name), [categories])
+  const insuranceSystemOptions = useMemo(() => SYSTEMS.map((s) => s.toUpperCase()), [])
+  const keywordsArray = useMemo(
+    () => (form.seo?.metaKeywords || '').split(',').map((s) => s.trim()).filter(Boolean),
+    [form.seo?.metaKeywords]
+  )
+
   const handleTitleChange = (title: string) => {
     setForm((prev) => ({
       ...prev,
@@ -146,33 +191,43 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
     }
   }
 
-  const handleApplyArticle = (
-    article: { title: string; summary: string; meta_description: string; content_html: string },
-    keywords: string[]
-  ) => {
+  const handleApplyArticle = useCallback((article: ArticleSnapshot) => {
     const isDirty = Boolean(form.title || form.contentHtml || form.excerpt)
     if (isDirty) {
-      setConfirmArticle({ article, keywords })
+      setConfirmArticle(article)
       return
     }
-    applyArticleToForm(article, keywords)
-  }
+    applyArticleToForm(article)
+  }, [form.title, form.contentHtml, form.excerpt])
 
-  const applyArticleToForm = (
-    article: { title: string; summary: string; meta_description: string; content_html: string },
-    keywords: string[]
-  ) => {
+  const applyArticleToForm = useCallback((article: ArticleSnapshot) => {
+    // Convert markdown to HTML
+    const htmlRaw = marked.parse(article.content_markdown) as string
+    const contentHtml = DOMPurify.sanitize(htmlRaw)
+
+    // Find matching category by name
+    const matchedCategory = categories.find(
+      (c) => c.name.toLowerCase() === (article.category || '').toLowerCase()
+    )
+
+    // Find matching system (lowercase to match SYSTEMS)
+    const matchedSystem = article.insurance_system
+      ? SYSTEMS.find((s) => s.toUpperCase() === article.insurance_system!.toUpperCase()) || form.system
+      : form.system
+
     setForm((prev) => ({
       ...prev,
       title: article.title,
       slug: isEdit ? prev.slug : slugify(article.title),
       excerpt: article.summary,
-      contentHtml: article.content_html,
+      contentHtml,
+      category: matchedCategory?._id || prev.category,
+      system: matchedSystem,
       seo: {
         ...prev.seo,
         metaTitle: article.title,
         metaDescription: article.meta_description,
-        metaKeywords: keywords.join(', '),
+        metaKeywords: article.meta_keywords.join(', '),
       },
       social: {
         ...prev.social,
@@ -180,9 +235,9 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
         ogDescription: article.meta_description,
       },
     }))
-    setExternalContent(article.content_html)
+    setExternalContent(contentHtml)
     setConfirmArticle(null)
-  }
+  }, [categories, isEdit, form.system])
 
   const handleSave = async () => {
     setSaving(true)
@@ -216,6 +271,14 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
       setSaving(false)
     }
   }
+
+  const handleAskAI = useCallback(() => {
+    setSeoChatOpen(true)
+  }, [])
+
+  const handleClearSelection = useCallback(() => {
+    setEditorSelection(null)
+  }, [])
 
   const [headerActionsEl, setHeaderActionsEl] = useState<HTMLElement | null>(null)
   const [headerStatusEl, setHeaderStatusEl] = useState<HTMLElement | null>(null)
@@ -311,7 +374,13 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">{L.contentLabel}</Label>
-                <TipTapEditor content={form.content} onChange={handleEditorChange} externalContent={externalContent} />
+                <TipTapEditor
+                  content={form.content}
+                  onChange={handleEditorChange}
+                  externalContent={externalContent}
+                  onSelectionChange={setEditorSelection}
+                  onAskAI={handleAskAI}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="excerpt" className="text-sm font-semibold">{L.excerptLabel}</Label>
@@ -566,11 +635,15 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
       {/* Floating AI chat - bottom right */}
       <div className="fixed bottom-6 right-6 z-50 hidden lg:block">
         {seoChatOpen && (
-          <div className="mb-3 w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="mb-3 w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-300">
             <SeoChat
-              currentTitle={form.title}
-              currentKeywords={form.seo?.metaKeywords || ''}
+              article={articleSnapshot}
+              selection={selectionInfo}
+              categoryOptions={categoryOptions}
+              insuranceSystemOptions={insuranceSystemOptions}
+              keywords={keywordsArray}
               onApplyArticle={handleApplyArticle}
+              onClearSelection={handleClearSelection}
               onClose={() => setSeoChatOpen(false)}
             />
           </div>
@@ -599,7 +672,7 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
             <AlertDialogAction
               onClick={() => {
                 if (confirmArticle) {
-                  applyArticleToForm(confirmArticle.article, confirmArticle.keywords)
+                  applyArticleToForm(confirmArticle)
                 }
               }}
             >

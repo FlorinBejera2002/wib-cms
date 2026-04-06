@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
 
     if (slug) {
       const post = await BlogPost.findOne({ slug, status: 'published' })
+        .select('-introText -conclusion -contentBlocks -contentSections -content')
         .populate('category', 'name slug')
         .populate('tags', 'name slug')
         .lean()

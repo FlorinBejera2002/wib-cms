@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/connection'
 import BlogPost from '@/lib/db/models/BlogPost'
-import { calculateReadingTime } from '@/lib/utils/reading-time'
+import { preparePostForSave } from '@/lib/utils/prepare-post'
 import { firePostPublished } from '@/lib/utils/webhook'
 
 export async function PUT(
@@ -18,16 +18,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    const readingTime = body.contentHtml
-      ? calculateReadingTime(body.contentHtml)
-      : existing.readingTime
+    const data = preparePostForSave(body, existing.readingTime)
 
     const wasPublished = existing.status === 'published'
-    const isNowPublished = body.status === 'published'
+    const isNowPublished = data.status === 'published'
 
     const updateData = {
-      ...body,
-      readingTime,
+      ...data,
       publishedAt:
         !wasPublished && isNowPublished
           ? new Date()
@@ -35,6 +32,12 @@ export async function PUT(
     }
 
     const updated = await BlogPost.findByIdAndUpdate(id, updateData, { new: true })
+
+    // Clean up legacy fields directly via MongoDB driver (not in Mongoose schema)
+    const db = BlogPost.collection
+    await db.updateOne({ _id: existing._id }, {
+      $unset: { introText: '', conclusion: '', contentBlocks: '', contentSections: '' },
+    })
 
     if (!wasPublished && isNowPublished && updated) {
       await firePostPublished({

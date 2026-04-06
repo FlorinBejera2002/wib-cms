@@ -78,6 +78,17 @@
 .tiptap-editor ol {
   @apply list-decimal pl-6 mb-3;
 }
+.tiptap-editor li {
+  margin-top: 0;
+  margin-bottom: 2px;
+}
+.tiptap-editor li p {
+  margin: 0;
+}
+.tiptap-editor ul li,
+.tiptap-editor ol li {
+  padding: 0;
+}
 .tiptap-editor blockquote {
   @apply border-l-4 border-primary pl-4 italic my-4;
 }

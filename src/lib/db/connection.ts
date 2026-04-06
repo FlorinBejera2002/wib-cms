@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://192.168.0.31:27017/wib_test'
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://192.168.61.201:27017/wib_test'
 
 interface MongooseCache {
   conn: typeof mongoose | null

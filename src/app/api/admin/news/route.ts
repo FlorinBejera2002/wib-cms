@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/connection'
 import News from '@/lib/db/models/News'
 import { slugify } from '@/lib/utils/slugify'
-import { calculateReadingTime } from '@/lib/utils/reading-time'
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,14 +49,9 @@ export async function POST(req: NextRequest) {
 
     const slug = body.slug || slugify(body.title)
 
-    const readingTime = body.contentHtml
-      ? calculateReadingTime(body.contentHtml)
-      : undefined
-
     const newsItem = await News.create({
       ...body,
       slug,
-      readingTime,
       publishedAt: body.status === 'published' ? new Date() : undefined,
     })
 

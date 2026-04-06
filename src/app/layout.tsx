@@ -7,6 +7,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'WIB CMS — asigurari.ro',
   description: 'Blog Content Management System for asigurari.ro',
+  icons: {
+    icon: '/icon.svg',
+  },
 }
 
 export default function RootLayout({

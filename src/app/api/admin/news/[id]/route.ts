@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/connection'
 import News from '@/lib/db/models/News'
-import { calculateReadingTime } from '@/lib/utils/reading-time'
 
 export async function GET(
   _req: NextRequest,
@@ -37,16 +36,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    const readingTime = body.contentHtml
-      ? calculateReadingTime(body.contentHtml)
-      : existing.readingTime
-
     const wasPublished = existing.status === 'published'
     const isNowPublished = body.status === 'published'
 
     const updateData = {
       ...body,
-      readingTime,
       publishedAt:
         !wasPublished && isNowPublished
           ? new Date()

@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/connection'
 import BlogPost from '@/lib/db/models/BlogPost'
-import { calculateReadingTime } from '@/lib/utils/reading-time'
+import { preparePostForSave } from '@/lib/utils/prepare-post'
 import { firePostPublished } from '@/lib/utils/webhook'
 
 export async function POST(req: NextRequest) {
   try {
     await connectDB()
     const body = await req.json()
-
-    const readingTime = body.contentHtml
-      ? calculateReadingTime(body.contentHtml)
-      : undefined
+    const data = preparePostForSave(body)
 
     const post = await BlogPost.create({
-      ...body,
-      authorDisplayName: body.authorDisplayName || 'Admin',
-      readingTime,
-      publishedAt: body.status === 'published' ? new Date() : undefined,
+      ...data,
+      authorDisplayName: (data.authorDisplayName as string) || 'Admin',
+      publishedAt: data.status === 'published' ? new Date() : undefined,
     })
 
-    if (body.status === 'published') {
+    if (data.status === 'published') {
       await firePostPublished({
         id: post._id.toString(),
         title: post.title,

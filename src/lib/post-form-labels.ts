@@ -59,7 +59,14 @@ export const POST_FORM_LABELS = {
   statusArchived: 'Arhivat',
 
   /* ── AI chat ── */
-  aiButton: 'AI Generator',
+  aiButton: 'Asistent SEO',
+  aiChatTitle: 'Asistent SEO',
+  aiPlaceholder: 'Descrie ce doresti...',
+  aiApply: 'Aplica',
+  aiStop: 'Opreste',
+  aiGenerating: 'Genereaza articol...',
+  aiStreaming: 'Raspunde...',
+  aiSelectionLabel: 'Selectie:',
 
   /* ── Confirm dialog ── */
   confirmTitle: 'Suprascrie continutul?',
