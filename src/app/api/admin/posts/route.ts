@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
 
     const post = await BlogPost.create({
       ...data,
-      authorDisplayName: (data.authorDisplayName as string) || 'Admin',
       publishedAt: data.status === 'published' ? new Date() : undefined,
     })
 

@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
         .sort({ [sortField]: sortOrder })
         .skip(skip)
         .limit(limit)
-        .select('title slug system excerpt featuredImageUrl featuredImageAlt authorDisplayName readingTime publishedAt stats category tags seo social status commentsEnabled version createdAt updatedAt')
+        .select('title slug system excerpt featuredImageUrl featuredImageAlt readingTime publishedAt stats category tags seo social status commentsEnabled version createdAt updatedAt')
         .populate('category', 'name slug')
         .populate('tags', 'name slug')
         .lean(),

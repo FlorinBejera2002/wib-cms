@@ -115,8 +115,7 @@ export default async function BlogPreviewPage({
     SYSTEM_LABELS[post.system] || (post.system ? post.system.toUpperCase() : '')
   const systemColor =
     SYSTEM_COLORS[post.system] || 'bg-green-100 text-green-700'
-  const authorName = post.authorDisplayName || 'Echipa asigurari.ro'
-  const authorInitial = authorName.charAt(0).toUpperCase()
+  const authorName = 'Asigurari.ro'
   const dateFormatted = formatDate(post.publishedAt || post.createdAt)
   const views = post.stats?.views ?? 0
   const readingTime = post.readingTime ?? 0
@@ -133,56 +132,9 @@ export default async function BlogPreviewPage({
   const encodedTitle = encodeURIComponent(post.title)
 
   return (
-    <html lang="ro">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex, nofollow" />
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-          crossOrigin="anonymous"
-          referrerPolicy="no-referrer"
-        />
-      </head>
-      <body className="bg-gray-50 text-gray-900 antialiased">
-        {/* ===== Inline prose-article CSS ===== */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              .prose-article { font-size: 1.0625rem; line-height: 1.7; color: #374151; }
-              .prose-article p { margin-bottom: 0.75em; }
-              .prose-article h2 { font-size: 1.5rem; font-weight: 800; color: #111827; margin-top: 1.5em; margin-bottom: 0.5em; line-height: 1.3; }
-              .prose-article h3 { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-top: 1.25em; margin-bottom: 0.4em; line-height: 1.4; }
-              .prose-article h4 { font-size: 1.1rem; font-weight: 600; color: #374151; margin-top: 1em; margin-bottom: 0.35em; }
-              .prose-article a { color: #15803d; text-decoration: underline; text-underline-offset: 2px; }
-              .prose-article a:hover { color: #166534; }
-              .prose-article ul, .prose-article ol { margin-bottom: 0.75em; padding-left: 1.5em; }
-              .prose-article ul { list-style-type: disc; }
-              .prose-article ol { list-style-type: decimal; }
-              .prose-article li { margin-bottom: 0.125em; }
-              .prose-article li p { margin: 0; }
-              .prose-article li::marker { color: #9ca3af; }
-              .prose-article blockquote { border-left: 4px solid #22c55e; background: #f0fdf4; padding: 1em 1.25em; margin: 1em 0; border-radius: 0 0.5rem 0.5rem 0; color: #15803d; font-style: italic; }
-              .prose-article blockquote p:last-child { margin-bottom: 0; }
-              .prose-article img { border-radius: 0.75rem; margin: 1em 0; max-width: 100%; height: auto; }
-              .prose-article table { width: 100% !important; border-collapse: collapse !important; margin: 1em 0; font-size: 0.9375rem; border: 1px solid #d1fae5 !important; }
-              .prose-article th { background: #dcfce7 !important; font-weight: 700 !important; text-align: left; padding: 0.6em 1em !important; border: 1px solid #bbf7d0 !important; color: #166534 !important; }
-              .prose-article td { padding: 0.5em 1em !important; border: 1px solid #d1fae5 !important; }
-              .prose-article td p, .prose-article th p { margin: 0 !important; }
-              .prose-article tr:hover td { background: #f0fdf4 !important; }
-              .prose-article code { background: #f3f4f6; padding: 0.15em 0.4em; border-radius: 0.25rem; font-size: 0.875em; color: #dc2626; }
-              .prose-article pre { background: #1f2937; color: #e5e7eb; padding: 1.25em; border-radius: 0.75rem; overflow-x: auto; margin: 1em 0; }
-              .prose-article pre code { background: none; color: inherit; padding: 0; }
-              .prose-article strong { font-weight: 700; color: #111827; }
-              .prose-article hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.25em 0; }
-              .prose-article > *:first-child { margin-top: 0; }
-            `,
-          }}
-        />
-
-        {/* ===== Preview Banner ===== */}
-        <div className="bg-amber-500 text-white py-3 px-4">
+    <>
+      {/* ===== Preview Banner ===== */}
+      <div className="bg-amber-500 text-white py-3 px-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <i className="fas fa-eye text-xl" />
@@ -262,9 +214,8 @@ export default async function BlogPreviewPage({
                 </h1>
 
                 <div className="flex items-center gap-2.5 text-sm text-gray-500 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                    {authorInitial}
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="w-5 h-5 object-contain" src="/icon.svg" alt="asigurari.ro" />
                   <span className="font-semibold text-gray-800">{authorName}</span>
                   {dateFormatted && (
                     <>
@@ -300,6 +251,32 @@ export default async function BlogPreviewPage({
                     loading="eager"
                   />
                 </div>
+              )}
+
+              {/* ===== Table of Contents ===== */}
+              {Array.isArray(post.tocItems) && post.tocItems.length >= 2 && (
+                <nav aria-label="Cuprins" className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <i className="fas fa-list text-green-700" />
+                    <span className="text-base font-bold text-gray-800">Cuprins</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {post.tocItems
+                      .filter((item: { level: number }) => item.level === 2)
+                      .map((item: { id: string; text: string; level: number }) => (
+                      <a
+                        key={item.id}
+                        href={`#${item.id}`}
+                        className="toc-link flex items-start gap-2.5 p-3 rounded-lg border-2 border-gray-100 bg-white hover:border-green-400 hover:bg-green-50 transition-colors no-underline"
+                      >
+                        <i className="fas fa-chevron-right mt-0.5 shrink-0 text-sm text-green-500" />
+                        <span className="font-semibold text-gray-800 leading-snug">
+                          {item.text}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </nav>
               )}
 
               {/* ===== Article Body ===== */}
@@ -369,8 +346,7 @@ export default async function BlogPreviewPage({
               )}
             </article>
           </div>
-        </div>
-      </body>
-    </html>
+      </div>
+    </>
   )
 }

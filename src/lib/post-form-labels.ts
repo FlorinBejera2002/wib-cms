@@ -46,7 +46,6 @@ export const POST_FORM_LABELS = {
   /* ── Publish sidebar ── */
   statusLabel: 'Status',
   systemLabel: 'Sistem',
-  authorLabel: 'Numele autorului',
   categoryLabel: 'Categorie',
   categoryPlaceholder: 'Selecteaza o categorie',
   categoryNone: 'Fara categorie',

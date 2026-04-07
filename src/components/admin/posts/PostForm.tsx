@@ -49,7 +49,6 @@ interface PostFormData {
   excerpt?: string
   featuredImageUrl?: string
   featuredImageAlt?: string
-  authorDisplayName?: string
   commentsEnabled: boolean
   category?: string
   tags?: string[]
@@ -121,7 +120,6 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
     excerpt: initialData?.excerpt || '',
     featuredImageUrl: initialData?.featuredImageUrl || '',
     featuredImageAlt: initialData?.featuredImageAlt || '',
-    authorDisplayName: initialData?.authorDisplayName || '',
     commentsEnabled: initialData?.commentsEnabled ?? true,
     category: initialData?.category || '',
     tags: initialData?.tags || [],
@@ -536,15 +534,6 @@ export default function PostForm({ initialData, categories = [], tags = [] }: Po
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="authorDisplayName">{L.authorLabel}</Label>
-                <Input
-                  id="authorDisplayName"
-                  value={form.authorDisplayName}
-                  onChange={(e) => setForm((p) => ({ ...p, authorDisplayName: e.target.value }))}
-                />
               </div>
 
               {categories.length > 0 && (

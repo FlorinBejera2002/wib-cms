@@ -25,11 +25,12 @@ export function preparePostForSave(
   delete data.contentBlocks
   delete data.contentSections
 
-  // --- Auto-generate tocItems from contentHtml ---
+  // --- Auto-generate tocItems & inject heading ids ---
   const html = data.contentHtml as string | undefined
   if (html) {
-    data.tocItems = extractTocFromHtml(html)
-    data.contentHtml = inlineContentStyles(html)
+    const toc = extractTocFromHtml(html)
+    data.tocItems = toc.items
+    data.contentHtml = inlineContentStyles(toc.html)
   }
 
   // --- Auto-fill SEO defaults ---

@@ -15,6 +15,7 @@
 
 import mongoose from 'mongoose'
 import { extractTocFromHtml } from '../lib/utils/extract-toc'
+import { inlineContentStyles } from '../lib/utils/inline-styles'
 import { calculateReadingTime } from '../lib/utils/reading-time'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://192.168.0.31:27017/wib_test'
@@ -51,8 +52,10 @@ async function main() {
       continue
     }
 
-    // Generate tocItems
-    const tocItems = extractTocFromHtml(html)
+    // Generate tocItems, inject heading ids, strip inline TOC
+    const toc = extractTocFromHtml(html)
+    const tocItems = toc.items
+    const cleanedHtml = inlineContentStyles(toc.html)
 
     // Calculate reading time
     const readingTime = calculateReadingTime(html)
@@ -97,6 +100,7 @@ async function main() {
         {
           $set: {
             tocItems,
+            contentHtml: cleanedHtml,
             readingTime,
             ...seoUpdate,
             ...socialUpdate,

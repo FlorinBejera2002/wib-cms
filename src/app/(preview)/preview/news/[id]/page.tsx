@@ -101,8 +101,7 @@ export default async function NewsPreviewPage({
   // Derive helpers
   const cat = CATEGORY_MAP[item.category] ?? { label: item.category, color: 'green' }
   const catCss = COLOR_CSS[cat.color] ?? COLOR_CSS.green
-  const authorName = item.authorName || 'Echipa asigurari.ro'
-  const authorInitial = (authorName.charAt(0) || 'E').toUpperCase()
+  const authorName = 'Asigurari.ro'
   const shareUrl = `https://www.asigurari.ro/news/${item.slug}`
   const shareTitle = encodeURIComponent(item.title)
   const sourceDomain = item.sourceUrl
@@ -110,68 +109,11 @@ export default async function NewsPreviewPage({
     : ''
 
   return (
-    <html lang="ro">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="noindex, nofollow" />
-        <title>{item.title} | Preview | WIB CMS</title>
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-        />
-        {/* Tailwind CDN for standalone preview */}
-        <script src="https://cdn.tailwindcss.com" />
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-          /* ?? Prose Article Typography (mirrors WIB production) ?? */
-          .prose-article { font-size: 1.0625rem; line-height: 1.7; color: #374151; }
-          .prose-article p { margin-bottom: 0.75em; }
-          .prose-article h2 { font-size: 1.5rem; font-weight: 800; color: #111827; margin-top: 1.5em; margin-bottom: 0.5em; line-height: 1.3; }
-          .prose-article h3 { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-top: 1.25em; margin-bottom: 0.4em; line-height: 1.4; }
-          .prose-article h4 { font-size: 1.1rem; font-weight: 600; color: #374151; margin-top: 1em; margin-bottom: 0.35em; }
-          .prose-article a { color: #15803d; text-decoration: underline; text-underline-offset: 2px; }
-          .prose-article a:hover { color: #166534; }
-          .prose-article ul, .prose-article ol { margin-bottom: 0.75em; padding-left: 1.5em; }
-          .prose-article ul { list-style-type: disc; }
-          .prose-article ol { list-style-type: decimal; }
-          .prose-article li { margin-bottom: 0.125em; }
-          .prose-article li p { margin: 0; }
-          .prose-article li::marker { color: #9ca3af; }
-          .prose-article blockquote {
-            border-left: 4px solid #22c55e;
-            background: #f0fdf4;
-            padding: 1em 1.25em;
-            margin: 1em 0;
-            border-radius: 0 0.5rem 0.5rem 0;
-            color: #15803d;
-            font-style: italic;
-          }
-          .prose-article blockquote p:last-child { margin-bottom: 0; }
-          .prose-article img { border-radius: 0.75rem; margin: 1em 0; max-width: 100%; height: auto; }
-          .prose-article table { width: 100% !important; border-collapse: collapse !important; margin: 1em 0; font-size: 0.9375rem; border: 1px solid #d1fae5 !important; }
-          .prose-article th { background: #dcfce7 !important; font-weight: 700 !important; text-align: left; padding: 0.6em 1em !important; border: 1px solid #bbf7d0 !important; color: #166534 !important; }
-          .prose-article td { padding: 0.5em 1em !important; border: 1px solid #d1fae5 !important; }
-          .prose-article td p, .prose-article th p { margin: 0 !important; }
-          .prose-article tr:hover td { background: #f0fdf4 !important; }
-          .prose-article code { background: #f3f4f6; padding: 0.15em 0.4em; border-radius: 0.25rem; font-size: 0.875em; color: #dc2626; }
-          .prose-article pre { background: #1f2937; color: #e5e7eb; padding: 1.25em; border-radius: 0.75rem; overflow-x: auto; margin: 1em 0; }
-          .prose-article pre code { background: none; color: inherit; padding: 0; }
-          .prose-article strong { font-weight: 700; color: #111827; }
-          .prose-article hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.25em 0; }
-          .prose-article > *:first-child { margin-top: 0; }
-
-          .progress-fill { transition: width 0.15s linear; }
-        `,
-          }}
-        />
-      </head>
-      <body className="bg-gray-50 min-h-screen">
-        {/* ================================================================ */}
-        {/*  PREVIEW BANNER                                                  */}
-        {/* ================================================================ */}
-        <div className="bg-amber-500 text-white py-3 px-4">
+    <>
+      {/* ================================================================ */}
+      {/*  PREVIEW BANNER                                                  */}
+      {/* ================================================================ */}
+      <div className="bg-amber-500 text-white py-3 px-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <i className="fas fa-eye text-xl" />
@@ -195,10 +137,10 @@ export default async function NewsPreviewPage({
           </div>
         </div>
 
-        {/* ================================================================ */}
-        {/*  MAIN CONTENT AREA                                               */}
-        {/* ================================================================ */}
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10">
+      {/* ================================================================ */}
+      {/*  MAIN CONTENT AREA                                               */}
+      {/* ================================================================ */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10">
           {/* Featured image */}
           {item.featuredImageUrl && (
             <div className="mb-8 rounded-xl overflow-hidden shadow-sm">
@@ -273,9 +215,8 @@ export default async function NewsPreviewPage({
 
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500 pb-6 border-b border-gray-200">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                        {authorInitial}
-                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img className="w-5 h-5 object-contain" src="/icon.svg" alt="asigurari.ro" />
                       <div className="flex flex-col">
                         <span className="font-semibold text-gray-800 text-sm leading-tight">
                           {authorName}
@@ -456,10 +397,10 @@ export default async function NewsPreviewPage({
           style={{ transition: 'width 0.15s linear' }}
         />
 
-        {/* Client-side reading progress script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+      {/* Client-side reading progress script */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
             (function() {
               var progress = document.getElementById('reading-progress');
               var content  = document.getElementById('article-content');
@@ -478,9 +419,8 @@ export default async function NewsPreviewPage({
               update();
             })();
           `,
-          }}
-        />
-      </body>
-    </html>
+        }}
+      />
+    </>
   )
 }

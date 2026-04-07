@@ -27,28 +27,62 @@ export interface TocItem {
   level: number
 }
 
-export function extractTocFromHtml(html: string): TocItem[] {
-  if (!html) return []
+/** Heading texts that indicate an inline TOC — should be excluded from tocItems */
+const TOC_HEADING_RE = /^cuprins:?$/i
+
+/**
+ * Strips manually-written inline TOC blocks from HTML.
+ * Matches patterns like:
+ *   <p><strong>Cuprins:</strong></p> followed by <ol>...</ol>
+ *   <h2>Cuprins</h2> followed by <ol>...</ol>
+ * The <ol> must contain at least one <a href="#..."> to be considered a TOC list.
+ */
+function stripInlineToc(html: string): string {
+  // Pattern 1: <p> containing "Cuprins" (possibly wrapped in <strong>) + <ol> with anchor links
+  html = html.replace(
+    /<p[^>]*>\s*(?:<strong[^>]*>)?\s*Cuprins:?\s*(?:<\/strong>)?\s*<\/p>\s*<ol[^>]*>([\s\S]*?)<\/ol>/gi,
+    (full, olContent) => olContent.match(/<a\s[^>]*href\s*=\s*["']#/) ? '' : full
+  )
+
+  // Pattern 2: <h2>/<h3> containing "Cuprins" + <ol> with anchor links
+  html = html.replace(
+    /<h[23][^>]*>\s*(?:<strong[^>]*>)?\s*Cuprins:?\s*(?:<\/strong>)?\s*<\/h[23]>\s*<ol[^>]*>([\s\S]*?)<\/ol>/gi,
+    (full, olContent) => olContent.match(/<a\s[^>]*href\s*=\s*["']#/) ? '' : full
+  )
+
+  return html
+}
+
+/**
+ * Extracts TOC items AND injects id attributes into headings that lack them.
+ * Also strips inline TOC blocks from the HTML to avoid duplication.
+ * Returns { items, html } where html has id attributes on all H2/H3 tags.
+ */
+export function extractTocFromHtml(html: string): { items: TocItem[]; html: string } {
+  if (!html) return { items: [], html }
+
+  // Strip inline TOC blocks first
+  let cleaned = stripInlineToc(html)
 
   const items: TocItem[] = []
-  // Match <h2> and <h3> tags (with optional attributes including id)
   const headingRegex = /<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi
-  let match: RegExpExecArray | null
 
-  while ((match = headingRegex.exec(html)) !== null) {
-    const level = parseInt(match[1], 10)
-    const attrs = match[2]
-    const innerHtml = match[3]
+  cleaned = cleaned.replace(headingRegex, (fullMatch, level, attrs, innerHtml) => {
     const text = stripTags(innerHtml)
+    if (!text) return fullMatch
 
-    if (!text) continue
+    // Skip "Cuprins" headings
+    if (TOC_HEADING_RE.test(text)) return fullMatch
 
-    // Try to extract existing id attribute
     const idMatch = attrs.match(/id\s*=\s*["']([^"']+)["']/)
     const id = idMatch ? idMatch[1] : slugify(text)
 
-    items.push({ id, text, level })
-  }
+    items.push({ id, text, level: parseInt(level, 10) })
 
-  return items
+    // Inject id if not present
+    if (idMatch) return fullMatch
+    return `<h${level}${attrs} id="${id}">${innerHtml}</h${level}>`
+  })
+
+  return { items, html: cleaned }
 }

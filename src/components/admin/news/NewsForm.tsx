@@ -76,7 +76,6 @@ interface NewsFormData {
   content?: Record<string, unknown>
   contentHtml?: string
   excerpt?: string
-  authorName?: string
   featuredImageUrl?: string
   isBreaking: boolean
   sourceName?: string
@@ -107,7 +106,6 @@ export default function NewsForm({ initialData, newsId }: NewsFormProps) {
     content: initialData?.content || undefined,
     contentHtml: initialData?.contentHtml || '',
     excerpt: initialData?.excerpt || '',
-    authorName: initialData?.authorName || 'Echipa asigurari.ro',
     featuredImageUrl: initialData?.featuredImageUrl || '',
     isBreaking: initialData?.isBreaking ?? false,
     sourceName: initialData?.sourceName || '',
@@ -329,15 +327,6 @@ export default function NewsForm({ initialData, newsId }: NewsFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="authorName">Numele autorului</Label>
-                <Input
-                  id="authorName"
-                  value={form.authorName}
-                  onChange={(e) => setForm((p) => ({ ...p, authorName: e.target.value }))}
-                />
               </div>
 
               <div className="flex items-center gap-2 pt-1">

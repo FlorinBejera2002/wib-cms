@@ -45,7 +45,7 @@ export default async function PostsPage({ searchParams }: { searchParams: Promis
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limit)
-      .select('title slug status system authorDisplayName updatedAt publishedAt stats')
+      .select('title slug status system updatedAt publishedAt stats')
       .lean(),
     BlogPost.countDocuments(filter),
   ])
@@ -76,7 +76,6 @@ export default async function PostsPage({ searchParams }: { searchParams: Promis
                   <th className="text-left p-4 font-medium text-sm">Titlu</th>
                   <th className="text-left p-4 font-medium text-sm">Sistem</th>
                   <th className="text-left p-4 font-medium text-sm">Status</th>
-                  <th className="text-left p-4 font-medium text-sm">Autor</th>
                   <th className="text-left p-4 font-medium text-sm">Vizualizări</th>
                   <th className="text-left p-4 font-medium text-sm">Actualizat</th>
                   <th className="text-right p-4 font-medium text-sm">Acțiuni</th>
@@ -89,7 +88,6 @@ export default async function PostsPage({ searchParams }: { searchParams: Promis
                   slug: string
                   system: string
                   status: string
-                  authorDisplayName?: string
                   stats?: { views: number }
                   updatedAt: string
                 }) => (
@@ -109,9 +107,6 @@ export default async function PostsPage({ searchParams }: { searchParams: Promis
                       <Badge variant={statusVariant[post.status] || 'secondary'}>
                         {statusLabel[post.status] || post.status}
                       </Badge>
-                    </td>
-                    <td className="p-4 text-sm text-muted-foreground">
-                      {post.authorDisplayName || '—'}
                     </td>
                     <td className="p-4 text-sm">
                       {post.stats?.views?.toLocaleString('ro-RO') || '0'}
